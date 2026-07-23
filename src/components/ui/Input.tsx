@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           type={type}
           className={cn(
-            'flex w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#243D24]',
+            'flex w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base sm:text-sm text-[#243D24]',
             'placeholder:text-[#9CA3AF]',
             'focus:outline-none focus:ring-2 focus:ring-[#243D24]/20 focus:border-[#243D24]',
             'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#F5F0E1]',
@@ -62,7 +62,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           className={cn(
-            'flex w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#243D24]',
+            'flex w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base sm:text-sm text-[#243D24]',
             'placeholder:text-[#9CA3AF]',
             'focus:outline-none focus:ring-2 focus:ring-[#243D24]/20 focus:border-[#243D24]',
             'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#F5F0E1]',

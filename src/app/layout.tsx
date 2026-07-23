@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers/Providers';
+import { MobileStickyBar } from '@/components/layout/MobileStickyBar';
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin', 'vietnamese'],
@@ -78,8 +79,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${inter.variable} font-inter antialiased bg-white text-[#101810] min-h-screen flex flex-col`}>
-        <Providers>{children}</Providers>
+      <body className={`${inter.variable} font-inter antialiased bg-white text-[#101810] min-h-screen flex flex-col pb-16 md:pb-0`}>
+        <Providers>
+          {children}
+          <MobileStickyBar />
+        </Providers>
       </body>
     </html>
   );

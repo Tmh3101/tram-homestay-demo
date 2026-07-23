@@ -1,59 +1,68 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Calendar, Star, MapPin, Phone, Mail, Heart, CheckCircle, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Calendar, Star, MapPin, Phone, 
+  Mail, Heart, CheckCircle, Bed, Mountain, Bath, Utensils, Trees,
+  Sparkles, ShieldCheck, X, Check, ArrowRight
+} from 'lucide-react';
 import { vi } from 'date-fns/locale';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isBefore, isAfter, isSameMonth } from 'date-fns';
-import { formatCurrency, getNights, addDays, isPastDate, isToday, formatDate, formatPhoneForQR } from '@/lib/utils';
+import { 
+  format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, 
+  isSameDay, isSameMonth, isAfter, isBefore 
+} from 'date-fns';
+import { formatCurrency, isPastDate, isToday, getNights, addDays, cn } from '@/lib/utils';
 import { useRoomStore } from '@/lib/store/roomStore';
 import { useBookingStore } from '@/lib/store/bookingStore';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { roomsData } from '@/mocks/data/rooms';
-import { cn } from '@/lib/utils';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { RoomCard } from '@/components/booking/RoomCard';
+import { GoogleMap, GOOGLE_MAPS_URL } from '@/components/ui/GoogleMap';
+import Image from 'next/image';
+import roomsDataJson from '@/mocks/data/rooms.json';
 import { Room } from '@/types';
 
-const typedRoomsData = roomsData as { rooms: Room[] };
+const typedRoomsData = roomsDataJson as { rooms: Room[] };
 
 export default function HomePage() {
-  const [selectedDate, setSelectedDateLocal] = useState<Date | null>(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const dateButtonRef = useRef<HTMLButtonElement>(null);
-  const [calendarPosition, setCalendarPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const defaultCheckIn = today;
+  const defaultCheckOut = new Date(today);
+  defaultCheckOut.setDate(defaultCheckOut.getDate() + 2);
+
+  // Date Range state
+  const [checkIn, setCheckIn] = useState<Date | null>(defaultCheckIn);
+  const [checkOut, setCheckOut] = useState<Date | null>(defaultCheckOut);
+  const [hoverDate, setHoverDate] = useState<Date | null>(null);
+
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const calculateCalendarPosition = () => {
-    if (dateButtonRef.current) {
-      const rect = dateButtonRef.current.getBoundingClientRect();
-      setCalendarPosition({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-  };
-
-  const handleDateButtonClick = () => {
-    calculateCalendarPosition();
-    setShowCalendar(!showCalendar);
-  };
-  
-  const { rooms, fetchRooms } = useRoomStore();
-  const { setSelectedDate, setSelectedRoom, setStep } = useBookingStore();
+  const { fetchRooms } = useRoomStore();
+  const { setDateRange, setStep } = useBookingStore();
 
   useEffect(() => {
     fetchRooms();
   }, [fetchRooms]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Sync date range to store when checkIn & checkOut are set
+  useEffect(() => {
+    if (checkIn && checkOut) {
+      const checkInStr = checkIn.toISOString().split('T')[0];
+      const checkOutStr = checkOut.toISOString().split('T')[0];
+      setDateRange({ checkIn: checkInStr, checkOut: checkOutStr });
+    }
+  }, [checkIn, checkOut, setDateRange]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -62,300 +71,211 @@ export default function HomePage() {
   const prevMonth = () => setCurrentMonth(addMonths(currentMonth, -1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
-  const handleDateSelect = (date: Date) => {
+  // Date Range click handler
+  const handleDateClick = (date: Date) => {
     if (isPastDate(date) && !isToday(date)) return;
-    const dateStr = date.toISOString().split('T')[0];
-    setSelectedDateLocal(date);
-    setSelectedDate(dateStr);
-    setShowCalendar(false);
-    setStep(4);
+
+    if (!checkIn || (checkIn && checkOut)) {
+      // Step 1: Start range selection
+      setCheckIn(date);
+      setCheckOut(null);
+    } else if (checkIn && !checkOut) {
+      // Step 2: Finish range selection
+      if (isBefore(date, checkIn) || isSameDay(date, checkIn)) {
+        setCheckIn(date);
+        setCheckOut(null);
+      } else {
+        setCheckOut(date);
+      }
+    }
   };
 
-  const availableRoomsCount = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
-    return typedRoomsData.rooms.filter(room => room.calendar[dateStr] !== 'booked').length;
-  };
-
-  const selectedDateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
-  const availableCount = selectedDate ? availableRoomsCount(selectedDate) : typedRoomsData.rooms.length;
+  const checkInStr = checkIn ? checkIn.toISOString().split('T')[0] : '';
+  const checkOutStr = checkOut ? checkOut.toISOString().split('T')[0] : '';
+  const nightsCount = checkIn && checkOut ? getNights(checkInStr, checkOutStr) : 0;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-[#E5E7EB]">
-        <div className="container-main flex items-center justify-between h-16 md:h-20">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#243D24] flex items-center justify-center">
-              <span className="text-white font-cormorant font-bold text-xl">T</span>
-            </div>
-            <span className="font-cormorant font-bold text-xl text-[#243D24] hidden sm:block">Tràm Homestay Tam Đảo</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#phong" className="text-sm font-medium text-[#243D24] hover:text-[#243D24]/70">Phòng</Link>
-            <Link href="#tien-nghi" className="text-sm font-medium text-[#243D24] hover:text-[#243D24]/70">Tiện nghi</Link>
-            <Link href="#lien-he" className="text-sm font-medium text-[#243D24] hover:text-[#243D24]/70">Liên hệ</Link>
-            <a href="tel:0901234567" className="flex items-center gap-1 text-sm font-medium text-[#243D24]">
-              <Phone className="w-4 h-4" /> 090 123 4567
-            </a>
-          </nav>
-          
-          <Button className="md:hidden" variant="ghost">Menu</Button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#FAF8F5] text-[#101810] flex flex-col">
+      <Header />
 
-      <main className="flex-1">
-        <section className="relative min-h-[80vh] md:min-h-[90vh] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url("/images/hero.webp")' }} />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#243D24]/80 via-[#243D24]/40 to-transparent" />
+      <main className="flex-1 -mt-[84px]">
+        {/* Hero Section - Full height to top edge */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-20 px-4 sm:px-6">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/images/hero.webp?v=2"
+              alt="Tràm Homestay Tam Đảo Hero"
+              fill
+              priority
+              quality={95}
+              className="object-cover object-center scale-105"
+            />
+            {/* Multi-stage dark gradient overlay for optimal text contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/55 to-[#0F180F]" />
           </div>
 
-          <div className="container-main relative z-10 py-20">
-            <div className="max-w-3xl text-center text-white">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 animate-in fade-in-0">
-                <Star className="w-4 h-4" />
-                <span className="text-sm font-medium">4.9/5 • 230+ đánh giá Google</span>
-              </div>
-              
-              <h1 className="font-cormorant font-semibold text-4xl md:text-6xl lg:text-7xl leading-tight mb-6 text-balance animate-in fade-in-0 zoom-in-95 duration-500">
-                Nghỉ dưỡng giữa rừng tràm
-                <br />
-                <span className="text-[#F5F0E1]">Tỉnh táo từng giấc mơ</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto text-balance">
-                12 phòng nghỉ dưỡng giữa rừng tràm Tam Đảo, view núi tuyệt đẹp. Đặt trực tuyến, thanh toán QR, nhận phòng 24/7.
-              </p>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6 max-w-xl mx-auto animate-in fade-in-0 zoom-in-95 duration-500 delay-200">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
-                  <div className="w-full md:w-auto flex-1">
-                                      <label className="block text-xs font-medium text-white/70 mb-2">Chọn ngày nhận phòng</label>
-                                      <div className="relative">
-                                        <button
-                                          ref={dateButtonRef}
-                                          onClick={handleDateButtonClick}
-                                          className="w-full bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white text-left focus:outline-none focus:ring-2 focus:ring-white/30"
-                                        >
-                                          <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                              <Calendar className="w-5 h-5 text-white/70" />
-                                              {selectedDate
-                                                ? format(selectedDate, 'dd/MM/yyyy', { locale: vi })
-                                                : 'Chọn ngày'}
-                                            </div>
-                                            <ChevronRightIcon className="w-5 h-5 text-white/50" />
-                                          </div>
-                                        </button>
-
-                                        {isMounted && calendarPosition && (
-                                          <div
-                                            className={cn(
-                                              'fixed top-[calc(100%+0.5rem)] bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]',
-                                              showCalendar ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
-                                            )}
-                                            style={{
-                                              top: calendarPosition.top,
-                                              left: calendarPosition.left,
-                                              width: calendarPosition.width
-                                            }}
-                                          >
-                          <div className="flex items-center justify-between mb-4">
-                            <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
-                              <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <span className="font-cormorant font-semibold text-lg">
-                              {format(currentMonth, 'MMMM yyyy', { locale: vi })}
-                            </span>
-                            <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
-                              <ChevronRight className="w-5 h-5" />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-7 gap-1 text-center text-sm text-[#243D24] mb-2">
-                            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => (
-                              <div key={d} className="font-medium text-[#9CA3AF] py-1">{d}</div>
-                            ))}
-                          </div>
-                          <div className="grid grid-cols-7 gap-1">
-                            {Array.from({ length: monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1 }).map((_, i) => (
-                              <div key={`prev-${i}`} className="aspect-square flex items-center justify-center text-[#D1D5DB] text-sm" />
-                            ))}
-                            {calendarDays.map(day => {
-                              const isSelected = selectedDate && isSameDay(day, selectedDate);
-                              const isCurrentMonth = isSameMonth(day, currentMonth);
-                              const isAvailable = availableRoomsCount(day) > 0;
-                              const disabled = isPastDate(day) && !isToday(day);
-                              
-                              return (
-                                <button
-                                  key={day.toISOString()}
-                                  onClick={() => handleDateSelect(day)}
-                                  disabled={disabled}
-                                  className={cn(
-                                    'aspect-square flex items-center justify-center text-sm rounded-xl transition-all',
-                                    isSelected && 'bg-[#243D24] text-white',
-                                    !isSelected && isAvailable && 'hover:bg-[#F5F0E1] text-[#243D24]',
-                                    !isCurrentMonth && 'text-[#D1D5DB]',
-                                    disabled && 'opacity-40 cursor-not-allowed'
-                                  )}
-                                >
-                                  {format(day, 'd', { locale: vi })}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="w-full md:w-auto flex-1">
-                    <Button 
-                      size="xl" 
-                      className="w-full md:w-auto bg-white text-[#243D24] hover:bg-[#F5F0E1] font-bold py-4 px-8"
-                      onClick={() => setShowCalendar(true)}
-                    >
-                      Xem phòng trống & Đặt ngay
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-center gap-4 text-sm text-white/80">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-green-400" />
-                    <span>{availableCount} phòng trống</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>Tam Đảo, Vĩnh Phúc</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    <span>090 123 4567</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <ChevronRightIcon className="w-6 h-6 text-white/60 rotate-90" />
-          </div>
-        </section>
-
-        <section id="phong" className="section bg-white">
-          <div className="container-main">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-              <div>
-                <h2 className="font-cormorant font-semibold text-3xl md:text-4xl text-[#243D24]">
-                  {selectedDate ? `Phòng trống ngày ${format(selectedDate, 'dd/MM/yyyy', { locale: vi })}` : 'Tất cả phòng'}
-                </h2>
-                <p className="text-[#6B7280] mt-2">
-                  {availableCount} phòng trống • 12 phòng tổng cộng
-                </p>
-              </div>
+          <div className="max-w-4xl mx-auto relative z-10 text-center text-white space-y-7">
+            <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/25 rounded-full px-4 py-2 text-xs font-bold text-white shadow-xl">
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <span>4.9/5 • 230+ đánh giá Google Maps</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {typedRoomsData.rooms.map(room => {
-                const isAvailable = selectedDateStr 
-                  ? room.calendar[selectedDateStr] !== 'booked'
-                  : true;
+            <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.15] tracking-tight text-balance text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+              Nghỉ dưỡng giữa rừng tràm
+              <br />
+              <span className="text-emerald-200 italic font-semibold drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">Tỉnh táo từng giấc mơ</span>
+            </h1>
+
+            <p className="text-base sm:text-xl text-slate-100/95 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+              12 phòng nghỉ dưỡng sinh thái view núi rừng Tam Đảo tuyệt đẹp. Đặt phòng trực tuyến, thanh toán chuyển khoản QR tức thì, nhận phòng 24/7.
+            </p>
+
+            {/* Date Range Picker Selector & CTA Container */}
+            <div className="bg-black/55 backdrop-blur-xl border border-white/25 rounded-3xl p-5 sm:p-7 max-w-2xl mx-auto shadow-2xl space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 
-                return (
-                  <RoomCard 
-                    key={room.id} 
-                    room={room} 
-                    isAvailable={isAvailable}
-                    selectedDate={selectedDateStr ?? undefined}
-                    onSelect={() => {
-                      setSelectedRoom(room.id);
-                      setStep(4);
-                    }}
-                  />
-                );
-              })}
-            </div>
+                {/* Date Range Button Trigger */}
+                <div className="w-full sm:w-2/3 text-left space-y-1.5">
+                  <label className="block text-xs font-bold text-emerald-200 uppercase tracking-wider">
+                    Khoảng ngày nghỉ (Check-in → Check-out)
+                  </label>
 
-            {!selectedDateStr && (
-              <div className="text-center mt-12">
-                <Button variant="outline" size="lg">
-                  Xem tất cả 12 phòng
-                </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCalendar(true)}
+                    className="w-full bg-white text-[#243D24] font-bold rounded-2xl px-4 py-3.5 text-xs sm:text-sm flex items-center justify-between shadow-lg hover:bg-[#F5F0E1] transition-all border border-white"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4.5 h-4.5 text-emerald-700 shrink-0" />
+                      <div className="flex items-center gap-1.5 font-extrabold text-slate-900">
+                        <span>{checkIn ? format(checkIn, 'dd/MM/yyyy') : 'Nhận phòng'}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{checkOut ? format(checkOut, 'dd/MM/yyyy') : 'Trả phòng'}</span>
+                      </div>
+                    </div>
+
+                    {nightsCount > 0 && (
+                      <span className="bg-[#243D24] text-white text-[11px] font-extrabold px-3 py-1 rounded-full shrink-0 shadow">
+                        {nightsCount} đêm
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Primary CTA */}
+                <div className="w-full sm:w-1/3 sm:self-end">
+                  <Link href={`/rooms?checkIn=${checkInStr}&checkOut=${checkOutStr}`}>
+                    <Button
+                      size="xl"
+                      className="w-full bg-[#F5F0E1] hover:bg-white text-[#243D24] font-extrabold py-3.5 px-4 rounded-2xl shadow-xl flex items-center justify-center gap-1.5 group text-xs sm:text-sm transition-all"
+                    >
+                      <span>Xem phòng trống</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+
               </div>
-            )}
+
+              {/* Status info bar */}
+              <div className="flex items-center justify-center gap-6 text-xs text-emerald-200/90 pt-3 border-t border-white/15">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>12 phòng nghỉ dưỡng view núi</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Thị trấn Tam Đảo</span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section id="tien-nghi" className="section bg-[#F5F0E1]">
-          <div className="container-main">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="font-cormorant font-semibold text-3xl md:text-4xl text-[#243D24] mb-4">
-                Tiện nghi hoàn hảo cho kỳ nghỉ
+        {/* Room Grid Section */}
+        <section id="phong" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-6">
+            <div>
+              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
+                Không gian nghỉ dưỡng
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#243D24] mt-2">
+                Danh sách phòng homestay
               </h2>
-              <p className="text-[#6B7280] text-lg">
-                Mọi thứ bạn cần cho kỳ nghỉ trọn vẹn đã được chuẩn bị sẵn sàng
+            </div>
+
+            <Link href="/rooms">
+              <Button variant="outline" className="rounded-full text-xs font-semibold px-5 py-2">
+                Xem tất cả 12 phòng ↗
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {typedRoomsData.rooms.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={room}
+                selectedDate={checkInStr || undefined}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Location & Google Map Section */}
+        <section id="vi-tri" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-6">
+            <div>
+              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
+                Vị trí & Chỉ đường
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#243D24] mt-2">
+                Bản đồ vị trí Tràm Homestay
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                Tổ 3, Thôn Yên Thịnh, Xã Tam Đảo, Vĩnh Phúc (Cách trung tâm thị trấn Tam Đảo 1.2km)
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { icon: '🛏️', title: 'Giường êm ái', desc: 'Giường King/Queen size, ga trắng cao cấp' },
-                { icon: '🌄', title: 'View núi tuyệt đẹp', desc: 'Ban công riêng ngắm mây rừng tràm' },
-                { icon: '🛁', title: 'Bồn tắm riêng', desc: 'Bồn tắm độc lập hoặc jacuzzi outdoor' },
-                { icon: '🍽️', title: 'Đặc sản Tam Đảo', desc: 'Combo ăn uống giá ưu đãi, BBQ buổi tối' },
-              ].map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl p-6 text-center hover:shadow-lg transition-shadow">
-                  <div className="text-4xl mb-3">{item.icon}</div>
-                  <h3 className="font-cormorant font-semibold text-xl text-[#243D24] mb-2">{item.title}</h3>
-                  <p className="text-[#6B7280]">{item.desc}</p>
-                </div>
-              ))}
-            </div>
+            <a
+              href={GOOGLE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="rounded-full text-xs font-semibold px-5 py-2.5 flex items-center gap-2 border-emerald-800/30 text-[#243D24] hover:bg-emerald-50">
+                <MapPin className="w-4 h-4 text-emerald-700" />
+                <span>Xem trên Google Maps ↗</span>
+              </Button>
+            </a>
           </div>
-        </section>
 
-        <section id="lien-he" className="section bg-[#243D24] text-white">
-          <div className="container-main">
-            <div className="grid md:grid-cols-3 gap-12">
-              <div>
-                <h2 className="font-cormorant font-semibold text-3xl md:text-4xl mb-6">Tràm Homestay Tam Đảo</h2>
-                <p className="text-white/70 mb-6 leading-relaxed">
-                  Nghỉ dưỡng giữa rừng tràm - Tỉnh táo từng giấc mơ. 12 phòng nghỉ dưỡng giữa rừng tràm, view núi tuyệt đẹp.
-                </p>
-                <div className="flex items-center gap-3 text-white/70">
-                  <MapPin className="w-5 h-5" />
-                  <span>Tổ 3, Thôn Yên Thịnh, Xã Tam Đảo, Huyện Tam Đảo, Vĩnh Phúc</span>
+          <div className="space-y-6">
+            <div className="shadow-2xl rounded-3xl overflow-hidden border border-slate-200">
+              <GoogleMap height="h-[560px]" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center text-xs shrink-0">1</div>
+                <div>
+                  <h4 className="font-bold text-xs text-[#243D24]">Từ Hà Nội (60 phút)</h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Đi cao tốc Nội Bài - Lào Cai, rẽ Nút giao IC4 đến thẳng homestay.</p>
                 </div>
               </div>
 
-              <div className="md:col-span-2 grid grid-cols-2 gap-8">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center text-xs shrink-0">2</div>
                 <div>
-                  <h3 className="font-cormorant font-semibold text-xl mb-4">Liên hệ đặt phòng</h3>
-                  <div className="space-y-4">
-                    <a href="tel:0901234567" className="flex items-center gap-3 text-white/80 hover:text-white transition-colors">
-                      <Phone className="w-6 h-6 text-white/50" />
-                      <span>090 123 4567 (Zalo/Call)</span>
-                    </a>
-                    <a href="mailto:tramhomestay@gmail.com" className="flex items-center gap-3 text-white/80 hover:text-white transition-colors">
-                      <Mail className="w-6 h-6 text-white/50" />
-                      <span>tramhomestay@gmail.com</span>
-                    </a>
-                  </div>
+                  <h4 className="font-bold text-xs text-[#243D24]">Đường xe ô tô rộng rãi</h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Đường nhựa đèo Tam Đảo thảm mượt, xe từ 4 đến 45 chỗ lên thoải mái.</p>
                 </div>
+              </div>
 
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center text-xs shrink-0">3</div>
                 <div>
-                  <h3 className="font-cormorant font-semibold text-xl mb-4">Địa chỉ & Bản đồ</h3>
-                  <div className="space-y-4">
-                    <div className="bg-white/10 rounded-xl p-4">
-                      <MapPin className="w-5 h-5 mb-2" />
-                      <p className="text-white/80 mb-2">Tổ 3, Thôn Yên Thịnh, Xã Tam Đảo</p>
-                      <p className="text-white/60 text-sm">Huyện Tam Đảo, Vĩnh Phúc</p>
-                    </div>
-                    <Button variant="outline" className="w-full" onClick={() => window.open('https://maps.app.goo.gl/xyz', '_blank')}>
-                      Mở Google Maps
-                    </Button>
-                  </div>
+                  <h4 className="font-bold text-xs text-[#243D24]">Bãi đỗ xe an toàn 24/7</h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5">Có chỗ đỗ riêng rộng rãi, bảo vệ & camera an ninh giám sát liên tục.</p>
                 </div>
               </div>
             </div>
@@ -363,99 +283,131 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="bg-[#1a2d1f] text-white/60 py-8">
-        <div className="container-main flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© 2026 Tràm Homestay Tam Đảo. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-white transition-colors">Facebook</a>
-            <a href="#" className="hover:text-white transition-colors">Instagram</a>
-            <a href="#" className="hover:text-white transition-colors">Zalo OA</a>
+      <Footer />
+
+      {/* Range Date Picker Modal */}
+      {showCalendar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-md animate-in fade-in-0 duration-200"
+            onClick={() => setShowCalendar(false)}
+          />
+
+          {/* Modal Container */}
+          <div className="relative z-[60] w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-[#243D24] animate-in zoom-in-95 duration-200 space-y-4">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-[#243D24]">
+                  {!checkIn || (checkIn && checkOut) 
+                    ? '1. Chọn ngày nhận phòng (Check-in)' 
+                    : '2. Chọn ngày trả phòng (Check-out)'}
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  {checkIn && !checkOut ? `Ngày nhận: ${format(checkIn, 'dd/MM/yyyy')}` : 'Chọn khoảng từ 1 đến 14 đêm'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowCalendar(false)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={prevMonth}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-[#F5F0E1] text-[#243D24] transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="font-heading text-base font-bold capitalize text-[#243D24]">
+                {format(currentMonth, 'MMMM yyyy', { locale: vi })}
+              </span>
+              <button
+                type="button"
+                onClick={nextMonth}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-[#F5F0E1] text-[#243D24] transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Days of Week */}
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 py-1">
+              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((d) => (
+                <div key={d}>{d}</div>
+              ))}
+            </div>
+
+            {/* Calendar Range Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: monthStart.getDay() === 0 ? 6 : monthStart.getDay() - 1 }).map((_, i) => (
+                <div key={`prev-${i}`} className="aspect-square" />
+              ))}
+              {calendarDays.map((day) => {
+                const disabled = isPastDate(day) && !isToday(day);
+                const isCheckInDay = checkIn && isSameDay(day, checkIn);
+                const isCheckOutDay = checkOut && isSameDay(day, checkOut);
+                
+                const isInRange = checkIn && checkOut && isAfter(day, checkIn) && isBefore(day, checkOut);
+                const isHoveredRange = checkIn && !checkOut && hoverDate && isAfter(day, checkIn) && (isBefore(day, hoverDate) || isSameDay(day, hoverDate));
+
+                return (
+                  <button
+                    key={day.toISOString()}
+                    type="button"
+                    onClick={() => handleDateClick(day)}
+                    onMouseEnter={() => setHoverDate(day)}
+                    disabled={disabled}
+                    className={cn(
+                      'aspect-square flex items-center justify-center text-xs font-semibold transition-all relative',
+                      (isCheckInDay || isCheckOutDay) && 'bg-[#243D24] text-white font-bold shadow-md z-10 rounded-xl scale-105',
+                      isInRange && 'bg-emerald-100 text-[#243D24] font-bold rounded-none',
+                      isHoveredRange && !isCheckInDay && 'bg-emerald-50 text-[#243D24] rounded-none',
+                      !isCheckInDay && !isCheckOutDay && !isInRange && !isHoveredRange && !disabled && 'hover:bg-slate-100 text-slate-800 rounded-xl',
+                      disabled && 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 rounded-xl'
+                    )}
+                  >
+                    {format(day, 'd', { locale: vi })}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Selected Range Summary & Confirm CTA */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div className="text-xs">
+                {checkIn && checkOut ? (
+                  <span className="font-bold text-emerald-800">
+                    {nightsCount} đêm nghỉ ({format(checkIn, 'dd/MM')} → {format(checkOut, 'dd/MM')})
+                  </span>
+                ) : checkIn ? (
+                  <span className="text-slate-500 font-medium">Chọn ngày trả phòng...</span>
+                ) : (
+                  <span className="text-slate-500 font-medium">Chưa chọn ngày</span>
+                )}
+              </div>
+
+              <Button
+                disabled={!checkIn || !checkOut}
+                onClick={() => setShowCalendar(false)}
+                className="bg-[#243D24] text-white rounded-full text-xs font-bold px-5 py-2 shadow-md"
+              >
+                Xác nhận chọn
+              </Button>
+            </div>
+
           </div>
         </div>
-      </footer>
-
-      {showCalendar && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm" onClick={() => setShowCalendar(false)} />
       )}
     </div>
-  );
-}
-
-function RoomCard({ room, isAvailable, selectedDate, onSelect }: { 
-  room: any; 
-  isAvailable: boolean; 
-  selectedDate?: string; 
-  onSelect: () => void;
-}) {
-  const nights = 2;
-  const totalPrice = room.pricePerNight * nights;
-
-  return (
-    <Card className={`relative ${!isAvailable ? 'opacity-50' : ''}`}>
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img 
-          src={room.images[0]} 
-          alt={room.name} 
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-        {!isAvailable && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="bg-red-500 text-white px-4 py-2 rounded-xl font-semibold">Hết phòng</span>
-          </div>
-        )}
-        <div className="absolute top-3 left-3">
-          <span className={cn(
-            'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium',
-            isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          )}>
-            <CheckCircle className="w-3 h-3" />
-            {isAvailable ? 'Còn phòng' : 'Hết phòng'}
-          </span>
-        </div>
-        <div className="absolute top-3 right-3">
-          <button className="w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors">
-            <Heart className="w-5 h-5 text-[#243D24]" />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-5 space-y-3">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div>
-            <h3 className="font-cormorant text-xl font-semibold text-[#243D24]">{room.name}</h3>
-            <p className="text-sm text-[#6B7280] capitalize">{room.type}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {room.amenities.slice(0, 4).map((amenity: string, i: number) => (
-            <span key={i} className="px-2 py-1 text-xs rounded-full bg-[#F5F0E1] text-[#243D24]">
-              {amenity}
-            </span>
-          ))}
-          {room.amenities.length > 4 && (
-            <span className="text-xs text-[#9CA3AF]">+{room.amenities.length - 4} tiện nghi khác</span>
-          )}
-        </div>
-
-        <div className="pt-3 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-          <div className="w-full sm:w-auto min-w-0">
-            <p className="text-xs sm:text-sm text-[#6B7280]">Giá / đêm</p>
-            <p className="font-cormorant text-lg sm:text-xl font-semibold text-[#243D24] truncate">
-              {formatCurrency(room.pricePerNight)}
-            </p>
-          </div>
-          <Button 
-            className="w-full sm:w-auto flex-1 sm:flex-none whitespace-nowrap" 
-            disabled={!isAvailable}
-            onClick={onSelect}
-          >
-            {isAvailable ? 'Đặt phòng' : 'Hết phòng'}
-            <ChevronRightIcon className="w-4 h-4 ml-1 inline" />
-          </Button>
-        </div>
-      </div>
-    </Card>
   );
 }

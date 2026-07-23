@@ -2,7 +2,8 @@
 import { http, HttpResponse } from 'msw';
 import roomsData from './data/rooms.json' with { type: 'json' };
 import bookingsData from './data/bookings.json' with { type: 'json' };
-import { generateOrderCode, getNights, formatPhoneForQR } from '@/lib/utils';
+import { generateOrderCode, getNights, formatPhoneForQR, addDays } from '@/lib/utils';
+
 import { generateVietQRContent, getBankDeeplinks, HOMESTAY_BANK_ACCOUNT } from '@/lib/vietqr';
 
 // In-memory storage for demo (resets on reload)
@@ -239,45 +240,3 @@ export const handlers = [
     return HttpResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
   }),
 ];
-
-// Helper functions (defined inline for MSW context)
-function getNights(checkIn: string, checkOut: string): number {
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
-  const diffTime = end.getTime() - start.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-}
-
-function addDays(date: string, days: number): string {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result.toISOString().split('T')[0];
-}
-
-function generateOrderCode(): number {
-  const timestamp = String(Date.now()).slice(-9);
-  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-  return Number(timestamp + random);
-}
-
-function formatPhoneForQR(phone: string): string {
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.startsWith('0')) return '84' + cleaned.slice(1);
-  if (cleaned.startsWith('84')) return cleaned;
-  return '84' + cleaned;
-}
-
-function getBankDeeplinks(content: string, amount: number): Record<string, string> {
-  const encodedContent = encodeURIComponent(content);
-  const encodedAmount = amount.toString();
-  
-  return {
-    vietcombank: `vietcombank://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    techcombank: `tcbmobile://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    bidv: `bidv://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    mb: `mbbank://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    vpbank: `vpbank://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    acb: `acb://pay?data=${encodedContent}&amount=${encodedAmount}`,
-    web: `https://vietqr.net/qr?data=${encodedContent}&amount=${encodedAmount}`,
-  };
-}

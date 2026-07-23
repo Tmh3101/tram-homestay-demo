@@ -1,4 +1,4 @@
-export type RoomType = 'Deluxe' | 'Family' | 'Standard';
+export type RoomType = 'VIP' | 'Deluxe' | 'Family' | 'Standard' | 'FullKhu';
 
 export type Amenity = 
   | 'king-bed' 
@@ -22,12 +22,16 @@ export interface Room {
   name: string;
   type: RoomType;
   pricePerNight: number;
+  saturdayPrice?: number;
+  standardCapacity?: number;
   capacity: number;
+  zone?: string;
   amenities: Amenity[];
   images: string[];
   description: string;
   calendar: Record<string, 'available' | 'booked' | 'blocked'>;
 }
+
 
 export type BookingStatus = 
   | 'DRAFT'

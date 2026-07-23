@@ -3,7 +3,10 @@ import { generateOrderCode } from '@/lib/utils';
 import { generateVietQRContent, getBankDeeplinks } from '@/lib/vietqr';
 import { HOMESTAY_BANK_ACCOUNT } from '@/lib/constants';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
+
   const { searchParams } = new URL(request.url);
   const bookingId = searchParams.get('bookingId');
   const amount = searchParams.get('amount');
