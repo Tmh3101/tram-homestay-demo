@@ -439,15 +439,15 @@ function RoomCard({ room, isAvailable, selectedDate, onSelect }: {
           )}
         </div>
 
-        <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between">
-          <div>
-            <p className="text-sm text-[#6B7280]">Giá / đêm</p>
-            <p className="font-cormorant text-2xl font-semibold text-[#243D24]">
+        <div className="pt-3 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+          <div className="w-full sm:w-auto min-w-0">
+            <p className="text-xs sm:text-sm text-[#6B7280]">Giá / đêm</p>
+            <p className="font-cormorant text-lg sm:text-xl font-semibold text-[#243D24] truncate">
               {formatCurrency(room.pricePerNight)}
             </p>
           </div>
           <Button 
-            className="w-full sm:w-auto" 
+            className="w-full sm:w-auto flex-1 sm:flex-none whitespace-nowrap" 
             disabled={!isAvailable}
             onClick={onSelect}
           >
