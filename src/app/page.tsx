@@ -21,6 +21,11 @@ export default function HomePage() {
   const [selectedDate, setSelectedDateLocal] = useState<Date | null>(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const { rooms, fetchRooms } = useRoomStore();
   const { setSelectedDate, setSelectedRoom, setStep } = useBookingStore();
@@ -124,8 +129,11 @@ export default function HomePage() {
                         </div>
                       </button>
                       
-                      {showCalendar && (
-                        <div className="absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 w-full z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]">
+                      {isMounted && (
+                      <div className={cn(
+                        'absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 w-full z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]',
+                        showCalendar ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
+                      )}>
                           <div className="flex items-center justify-between mb-4">
                             <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
                               <ChevronLeft className="w-5 h-5" />
