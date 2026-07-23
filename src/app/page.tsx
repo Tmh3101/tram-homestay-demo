@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Calendar, Star, MapPin, Phone, Mail, Heart, CheckCircle, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import { vi } from 'date-fns/locale';
@@ -22,10 +22,28 @@ export default function HomePage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const dateButtonRef = useRef<HTMLButtonElement>(null);
+  const [calendarPosition, setCalendarPosition] = useState<{ top: number; left: number; width: number } | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const calculateCalendarPosition = () => {
+    if (dateButtonRef.current) {
+      const rect = dateButtonRef.current.getBoundingClientRect();
+      setCalendarPosition({
+        top: rect.bottom + 8,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  };
+
+  const handleDateButtonClick = () => {
+    calculateCalendarPosition();
+    setShowCalendar(!showCalendar);
+  };
   
   const { rooms, fetchRooms } = useRoomStore();
   const { setSelectedDate, setSelectedRoom, setStep } = useBookingStore();
@@ -112,28 +130,36 @@ export default function HomePage() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 md:p-6 max-w-xl mx-auto animate-in fade-in-0 zoom-in-95 duration-500 delay-200">
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
                   <div className="w-full md:w-auto flex-1">
-                    <label className="block text-xs font-medium text-white/70 mb-2">Chọn ngày nhận phòng</label>
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowCalendar(!showCalendar)}
-                        className="w-full bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white text-left focus:outline-none focus:ring-2 focus:ring-white/30"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-white/70" />
-                            {selectedDate 
-                              ? format(selectedDate, 'dd/MM/yyyy', { locale: vi })
-                              : 'Chọn ngày'}
-                          </div>
-                          <ChevronRightIcon className="w-5 h-5 text-white/50" />
-                        </div>
-                      </button>
-                      
-                      {isMounted && (
-                      <div className={cn(
-                        'absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 w-full z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]',
-                        showCalendar ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
-                      )}>
+                                      <label className="block text-xs font-medium text-white/70 mb-2">Chọn ngày nhận phòng</label>
+                                      <div className="relative">
+                                        <button
+                                          ref={dateButtonRef}
+                                          onClick={handleDateButtonClick}
+                                          className="w-full bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white text-left focus:outline-none focus:ring-2 focus:ring-white/30"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                              <Calendar className="w-5 h-5 text-white/70" />
+                                              {selectedDate
+                                                ? format(selectedDate, 'dd/MM/yyyy', { locale: vi })
+                                                : 'Chọn ngày'}
+                                            </div>
+                                            <ChevronRightIcon className="w-5 h-5 text-white/50" />
+                                          </div>
+                                        </button>
+
+                                        {isMounted && calendarPosition && (
+                                          <div
+                                            className={cn(
+                                              'fixed top-[calc(100%+0.5rem)] bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]',
+                                              showCalendar ? 'opacity-100 visible pointer-events-auto' : 'opacity-0 invisible pointer-events-none'
+                                            )}
+                                            style={{
+                                              top: calendarPosition.top,
+                                              left: calendarPosition.left,
+                                              width: calendarPosition.width
+                                            }}
+                                          >
                           <div className="flex items-center justify-between mb-4">
                             <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
                               <ChevronLeft className="w-5 h-5" />
