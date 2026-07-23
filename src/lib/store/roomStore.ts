@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Room } from '@/types';
+import { Room } from '../../types';
 
 interface RoomStore {
   rooms: Room[];
@@ -21,7 +21,7 @@ export const useRoomStore = create<RoomStore>()(
           const res = await fetch('/api/rooms');
           const data = await res.json();
           set({ 
-            rooms: data.rooms,
+            rooms: data.rooms || [],
             availability: data.availability || {},
           });
         } catch (error) {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Booking, BookingStatus } from '@/types';
+import { Booking } from '../../types';
 
 interface BookingState {
   // Flow state
@@ -68,7 +68,8 @@ export const useBookingStore = create<BookingState>()(
           }),
         });
         
-        const newBooking = await res.json();
+        const data = await res.json();
+        const newBooking = data.booking || data;
         set({ booking: newBooking, currentStep: 7 });
         get().startPaymentTimer();
         return newBooking;
