@@ -125,7 +125,7 @@ export default function HomePage() {
                       </button>
                       
                       {showCalendar && (
-                        <div className="fixed left-4 right-4 md:left-auto md:right-auto md:w-[320px] bottom-[calc(100%+1rem)] bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto">
+                        <div className="absolute top-[calc(100%+0.5rem)] left-0 right-0 bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 w-full z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto text-[#243D24]">
                           <div className="flex items-center justify-between mb-4">
                             <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
                               <ChevronLeft className="w-5 h-5" />
@@ -166,11 +166,6 @@ export default function HomePage() {
                                   )}
                                 >
                                   {format(day, 'd', { locale: vi })}
-                                  {availableRoomsCount(day) > 0 && availableRoomsCount(day) < 3 && (
-                                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full text-[8px] text-white flex items-center justify-center">
-                                      {availableRoomsCount(day)}
-                                    </span>
-                                  )}
                                 </button>
                               );
                             })}
