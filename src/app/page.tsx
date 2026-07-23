@@ -125,7 +125,7 @@ export default function HomePage() {
                       </button>
                       
                       {showCalendar && (
-                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 w-full z-50 animate-in fade-in-0 zoom-in-95">
+                        <div className="fixed left-4 right-4 md:left-auto md:right-auto md:w-[320px] bottom-[calc(100%+1rem)] bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-4 z-50 animate-in fade-in-0 zoom-in-95 max-h-[70vh] overflow-y-auto">
                           <div className="flex items-center justify-between mb-4">
                             <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-[#F5F0E1] text-[#243D24]">
                               <ChevronLeft className="w-5 h-5" />
