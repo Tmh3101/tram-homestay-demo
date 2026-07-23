@@ -1,0 +1,208 @@
+{
+  "rooms": [
+    {
+      "id": "deluxe-mountain",
+      "name": "Deluxe View Núi",
+      "type": "Deluxe",
+      "pricePerNight": 850000,
+      "capacity": 2,
+      "amenities": ["king-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony"],
+      "images": [
+        "/images/rooms/deluxe-mountain/1.webp",
+        "/images/rooms/deluxe-mountain/2.webp",
+        "/images/rooms/deluxe-mountain/3.webp",
+        "/images/rooms/deluxe-mountain/4.webp",
+        "/images/rooms/deluxe-mountain/5.webp"
+      ],
+      "description": "Phòng Deluxe View Núi mang đến không gian thư giãn tuyệt đẹp với view toàn cảnh dãy núi Tam Đảo. Thiết kế hiện đại, tone màu trầm ấm, giường King size êm ái, ban công riêng ngắm mây rừng.",
+      "calendar": {}
+    },
+    {
+      "id": "family-suite",
+      "name": "Family Suite 2PN",
+      "type": "Family",
+      "pricePerNight": 1200000,
+      "capacity": 4,
+      "amenities": ["queen-bed", "twin-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony", "mini-fridge"],
+      "images": [
+        "/images/rooms/family-suite/1.webp",
+        "/images/rooms/family-suite/2.webp",
+        "/images/rooms/family-suite/3.webp",
+        "/images/rooms/family-suite/4.webp",
+        "/images/rooms/family-suite/5.webp"
+      ],
+      "description": "Family Suite 2 phòng ngủ rộng 60m², lý tưởng cho gia đình 4 người. Bao gồm 1 phòng Master (giường Queen) + 1 phòng trẻ em (2 giường đơn), 2 WC riêng, ban công rộng view núi.",
+      "calendar": {}
+    },
+    {
+      "id": "standard-garden",
+      "name": "Standard Garden",
+      "type": "Standard",
+      "pricePerNight": 650000,
+      "capacity": 2,
+      "amenities": ["queen-bed", "garden-view", "ac", "wifi", "hot-water", "shower"],
+      "images": [
+        "/images/rooms/standard-garden/1.webp",
+        "/images/rooms/standard-garden/2.webp",
+        "/images/rooms/standard-garden/3.webp",
+        "/images/rooms/standard-garden/4.webp",
+        "/images/rooms/standard-garden/5.webp"
+      ],
+      "description": "Phòng Standard Garden hướng ra vườn tràm xanh mát, không gian nhỏ bé nhưng đầy đủ tiện nghi. Giường Queen êm ái, WC hiện đại với vòi sen cao cấp.",
+      "calendar": {}
+    },
+    {
+      "id": "deluxe-balcony",
+      "name": "Deluxe Balcony",
+      "type": "Deluxe",
+      "pricePerNight": 950000,
+      "capacity": 2,
+      "amenities": ["king-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony", "mini-fridge"],
+      "images": [
+        "/images/rooms/deluxe-balcony/1.webp",
+        "/images/rooms/deluxe-balcony/2.webp",
+        "/images/rooms/deluxe-balcony/3.webp",
+        "/images/rooms/deluxe-balcony/4.webp",
+        "/images/rooms/deluxe-balcony/5.webp"
+      ],
+      "description": "Deluxe Balcony với ban công rộng 10m², view núi tuyệt đẹp. Nội thất gỗ tự nhiên, bồn tắm độc lập, không gian thư giãn cao cấp.",
+      "calendar": {}
+    },
+    {
+      "id": "premium-suite",
+      "name": "Premium Suite",
+      "type": "Deluxe",
+      "pricePerNight": 1500000,
+      "capacity": 2,
+      "amenities": ["king-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony", "mini-fridge", "tv", "safe", "hair-dryer"],
+      "images": [
+        "/images/rooms/premium-suite/1.webp",
+        "/images/rooms/premium-suite/2.webp",
+        "/images/rooms/premium-suite/3.webp",
+        "/images/rooms/premium-suite/4.webp",
+        "/images/rooms/premium-suite/5.webp"
+      ],
+      "description": "Premium Suite - Phòng cao cấp nhất với diện tích 50m². Bồn tắm massage, giường King size cao cấp, ban công view núi toàn cảnh, tủ lạnh mini, két sắt.",
+      "calendar": {}
+    },
+    {
+      "id": "standard-twin",
+      "name": "Standard Twin",
+      "type": "Standard",
+      "pricePerNight": 700000,
+      "capacity": 2,
+      "amenities": ["twin-bed", "garden-view", "ac", "wifi", "hot-water", "shower", "balcony"],
+      "images": [
+        "/images/rooms/standard-twin/1.webp",
+        "/images/rooms/standard-twin/2.webp",
+        "/images/rooms/standard-twin/3.webp",
+        "/images/rooms/standard-twin/4.webp",
+        "/images/rooms/standard-twin/5.webp"
+      ],
+      "description": "Phòng Standard Twin với 2 giường đơn, phù hợp cho bạn bè, đồng nghiệp. Ban công nhỏ hướng vườn, WC hiện đại, đầy đủ tiện nghi cơ bản.",
+      "calendar": {}
+    },
+    {
+      "id": "deluxe-garden",
+      "name": "Deluxe Garden",
+      "type": "Deluxe",
+      "pricePerNight": 900000,
+      "capacity": 2,
+      "amenities": ["king-bed", "garden-view", "ac", "wifi", "hot-water", "bathtub", "balcony"],
+      "images": [
+        "/images/rooms/deluxe-garden/1.webp",
+        "/images/rooms/deluxe-garden/2.webp",
+        "/images/rooms/deluxe-garden/3.webp",
+        "/images/rooms/deluxe-garden/4.webp",
+        "/images/rooms/deluxe-garden/5.webp"
+      ],
+      "description": "Deluxe Garden nằm tầng 1, cửa ra trực tiếp vườn tràm. Không gian mở, bồn tắm outdoor riêng biệt, không gian BBQ nhỏ trên ban công.",
+      "calendar": {}
+    },
+    {
+      "id": "family-deluxe",
+      "name": "Family Deluxe",
+      "type": "Family",
+      "pricePerNight": 1100000,
+      "capacity": 4,
+      "amenities": ["queen-bed", "twin-bed", "garden-view", "ac", "wifi", "hot-water", "bathtub", "balcony"],
+      "images": [
+        "/images/rooms/family-deluxe/1.webp",
+        "/images/rooms/family-deluxe/2.webp",
+        "/images/rooms/family-deluxe/3.webp",
+        "/images/rooms/family-deluxe/4.webp",
+        "/images/rooms/family-deluxe/5.webp"
+      ],
+      "description": "Family Deluxe 2 phòng ngủ hướng vườn. Phòng cha mẹ giường Queen, phòng con 2 giường đơn. Phù hợp gia đình trẻ con nhỏ.",
+      "calendar": {}
+    },
+    {
+      "id": "standard-mountain",
+      "name": "Standard Mountain",
+      "type": "Standard",
+      "pricePerNight": 750000,
+      "capacity": 2,
+      "amenities": ["queen-bed", "mountain-view", "ac", "wifi", "hot-water", "shower"],
+      "images": [
+        "/images/rooms/standard-mountain/1.webp",
+        "/images/rooms/standard-mountain/2.webp",
+        "/images/rooms/standard-mountain/3.webp",
+        "/images/rooms/standard-mountain/4.webp",
+        "/images/rooms/standard-mountain/5.webp"
+      ],
+      "description": "Standard Mountain view núi giá tốt. Phòng nhỏ gọn, đầy đủ tiện nghi, phù hợp cặp đôi trẻ muốn trải nghiệm Tam Đảo tiết kiệm.",
+      "calendar": {}
+    },
+    {
+      "id": "deluxe-twin",
+      "name": "Deluxe Twin",
+      "type": "Deluxe",
+      "pricePerNight": 1000000,
+      "capacity": 2,
+      "amenities": ["twin-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony", "mini-fridge"],
+      "images": [
+        "/images/rooms/deluxe-twin/1.webp",
+        "/images/rooms/deluxe-twin/2.webp",
+        "/images/rooms/deluxe-twin/3.webp",
+        "/images/rooms/deluxe-twin/4.webp",
+        "/images/rooms/deluxe-twin/5.webp"
+      ],
+      "description": "Deluxe Twin với 2 giường đơn lớn, ban công view núi. Phù hợp bạn bè, anh chị em đi cùng nhau. Không gian rộng hơn Standard.",
+      "calendar": {}
+    },
+    {
+      "id": "honeymoon-suite",
+      "name": "Honeymoon Suite",
+      "type": "Deluxe",
+      "pricePerNight": 1800000,
+      "capacity": 2,
+      "amenities": ["king-bed", "mountain-view", "ac", "wifi", "hot-water", "bathtub", "balcony", "mini-fridge", "tv", "safe", "hair-dryer"],
+      "images": [
+        "/images/rooms/honeymoon-suite/1.webp",
+        "/images/rooms/honeymoon-suite/2.webp",
+        "/images/rooms/honeymoon-suite/3.webp",
+        "/images/rooms/honeymoon-suite/4.webp",
+        "/images/rooms/honeymoon-suite/5.webp"
+      ],
+      "description": "Honeymoon Suite - Phòng cho tuần trăng mật. Bồn tắm jacuzzi outdoor trên ban công, hoa trang trí, rượu vang chào đón, setup lãng mạn tối đa.",
+      "calendar": {}
+    },
+    {
+      "id": "standard-budget",
+      "name": "Standard Budget",
+      "type": "Standard",
+      "pricePerNight": 550000,
+      "capacity": 2,
+      "amenities": ["queen-bed", "garden-view", "ac", "wifi", "hot-water", "shower"],
+      "images": [
+        "/images/rooms/standard-budget/1.webp",
+        "/images/rooms/standard-budget/2.webp",
+        "/images/rooms/standard-budget/3.webp",
+        "/images/rooms/standard-budget/4.webp",
+        "/images/rooms/standard-budget/5.webp"
+      ],
+      "description": "Phòng giá tốt nhất, phù hợp du lịch bụi. Đủ tiện nghi cơ bản: giường Queen, điều hòa, wifi, nóng lạnh, WC sạch sẽ.",
+      "calendar": {}
+    }
+  ]
+}
